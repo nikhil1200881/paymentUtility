@@ -8,6 +8,7 @@ import Enum.PinBlockType
 import Enum.TimeFormat
 import Enum.TransactionType
 import dataclass.Track2
+import java.util.Currency
 
 interface IpaymnetUtility {
 
@@ -58,6 +59,14 @@ interface IpaymnetUtility {
     fun ttqParser(ttq: String?): String?
 
     fun ttqParser(ttq: ByteArray?): String?
+
+    fun addationalTerminakCapParser(addationalTerminalCap: String?)
+
+    fun getResponseCodeMessage(resonseCode: String): String
+
+    fun getFormattedAmount(amount: String, deciamlPoint: Int, currencyCode: Int): String
+
+
 
 
 }

@@ -113,7 +113,43 @@ class PaymentUtility: IpaymnetUtility {
         TODO("Not yet implemented")
     }
 
-    override fun generateRandomNumber(): String? {
+    override fun generateRandomNumber(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun isCardExpired(expiryDate: String): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getMaskedPan(panFirst: Int?, panLast: Int?): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun parseTVR(tvrValue: String?): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun parseTVR(tvrValue: ByteArray?): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ttqParser(ttq: String?): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ttqParser(ttq: ByteArray?): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun addationalTerminakCapParser(addationalTerminalCap: String?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getResponseCodeMessage(resonseCode: String): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFormattedAmount(amount: String, deciamlPoint: Int, currencyCode: Int): String {
         TODO("Not yet implemented")
     }
 
