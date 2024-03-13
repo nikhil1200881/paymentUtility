@@ -1,17 +1,13 @@
 package com.payment.paymentutilities
 
-import Enum.CardType
-import Enum.DateFormat
-import Enum.EntryMode
-import Enum.NetworkType
-import Enum.PinBlockType
-import Enum.TimeFormat
-import Enum.TransactionType
+import Enum.*
 import android.util.Log
 import dataclass.Track2
 import interfaces.IpaymnetUtility
+import java.util.*
 
 class PaymentUtility: IpaymnetUtility {
+    val convertor = Convertor()
     override fun getCardType(panNumber: String): CardType {
         try {
             if(panNumber.isNullOrEmpty()){
@@ -53,13 +49,132 @@ class PaymentUtility: IpaymnetUtility {
         return ""
     }
 
-    override fun isNeedPinEntry(cvmResult: String, entryMode: EntryMode?): Boolean {
-        TODO("Not yet implemented")
+    override fun isNeedPinEntry(cvmResult: String, entryMode: EntryMode?, serviceCode:String): String {
+        try {
+            if ((entryMode== EntryMode.CTLS) ||  (entryMode== EntryMode.INSERT ))
+            {
+                val parCVM = cvmResult.substring(0,2)
+                val convertBinary =hexToBinary(parCVM)
+                println("Enter in fun $convertBinary")
+                if(convertBinary == "1000000")
+                {
+                    return CvmCondition.FAIL.stringValue
+                }
+                else if(convertBinary == "1000001")
+                {
+                    return CvmCondition.PIN_by_ICC.stringValue
+                }
+                else if (convertBinary == "1000010")
+                {
+                    return CvmCondition.Enc_PIN_Verfied_Online.stringValue
+                }
+                else if(convertBinary == "1000011")
+                {
+                    return CvmCondition.PIN_by_ICC_Signature.stringValue
+                }
+                else if (convertBinary == "1000100")
+                {
+                    return CvmCondition.Enc_PIN_by_ICC.stringValue
+                }
+                else if (convertBinary =="1000101")
+                {
+                    return CvmCondition.Enc_PIN_by_ICC_Signature.stringValue
+                }
+                else if (convertBinary == "1011110")
+                {
+                    return CvmCondition.Sign.stringValue
+                }
+                else if (convertBinary =="1011111")
+                {
+                    return CvmCondition.No_CVM_Req.stringValue
+                }
+                else if(cvmResult =="1111111")
+                {
+                    return CvmCondition.NO_CVM.stringValue
+                }
+                else
+                {
+                    throw IllegalArgumentException("No Valid CVM")
+                }
+
+            }
+         if((entryMode== EntryMode.SWIPE))
+         {
+             val code = serviceCode.last().toString()
+             println("last digit $code")
+            if(code =="0" || code =="3" || code == "5" || code =="6" || code =="7")
+            {
+                return "PIN Pad Open"
+            }
+            return "PIN Not Required"
+         }
+        }catch (ex : Exception)
+        {
+             Log.e("Error","error $ex")
+        }
+        return " "
+    }
+    //
+    fun hexToBinary(hex: String): String {
+        val decimalValue = Integer.parseInt(hex, 16)
+        return Integer.toBinaryString(decimalValue)
+    }
+    override fun generatePinBlock(panNumber: String, pin : String,pinBlockType: PinBlockType): String {
+
+        try {
+            if (pin.length < 4 || pin.length > 6) {
+               // Log.e("error", "This is wrong  entry")
+                throw IllegalArgumentException("PIN length must be between 4 and 6 digits")
+            }
+            var pinBlock = String.format("%s%d%s", 0, pin.length, pin)
+            while (pinBlock.length != 16) {
+                pinBlock += "F"
+            }
+            val cardLen = panNumber.length
+            val pan = "0000" + panNumber.substring(cardLen - 13, cardLen - 1)
+            return xorConvert(pinBlock, pan)
+        } catch (ex: Exception) {
+            Log.e("error", "Exception caught: ${ex.message}")
+            return ""
+        }
     }
 
-    override fun generatePinBlock(panNumber: String, pinBlockType: PinBlockType): String {
-        TODO("Not yet implemented")
+    private fun xorConvert(pan: String, block: String): String {
+        val chars = CharArray(pan.length)
+        println("--length$chars")
+        for (i in chars.indices) {
+            //println(chars)
+            chars[i] = toHex(fromHex(pan[i]) xor fromHex(block[i]))
+            //println("${chars[i]}")
+        }
+        return String(chars).uppercase(Locale.getDefault())
+
     }
+    private fun fromHex(c: Char): Int {
+        if (c in '0'..'9') {
+            println("$c")
+            return c - '0'
+        }
+        if (c in 'A'..'F') {
+            println("$c")
+            println("fromHexCap${c - 'A' + 10}")
+            return c - 'A' + 10
+        }
+        if (c in 'a'..'f') {
+            println("fromHex${c - 'a' + 10}")
+            return c - 'a' + 10
+        }
+        throw IllegalArgumentException()
+    }
+
+    private fun toHex(data: Int): Char {
+        if (data in 0..15) {
+            return "0123456789ABCDEF"[data]
+        } else {
+            throw IllegalArgumentException("Invalid data value: $data")
+        }
+    }
+
 
     override fun isRequiredSignatureOnReceipt(cvmResult: String, entryMode: EntryMode?): Boolean {
         TODO("Not yet implemented")
@@ -152,7 +267,6 @@ class PaymentUtility: IpaymnetUtility {
     override fun getFormattedAmount(amount: String, deciamlPoint: Int, currencyCode: Int): String {
         TODO("Not yet implemented")
     }
-
     /* ----------------Inline Methods ---------------------*/
 
     fun String.isOnlineApproved() = this == Constants.APPROVED_RESPONSE_CODE

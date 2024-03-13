@@ -16,9 +16,9 @@ interface IpaymnetUtility {
 
     fun getEntryMode(entryMode: EntryMode?,pinEntry: Boolean?): String
 
-    fun isNeedPinEntry(cvmResult: String, entryMode: EntryMode?): Boolean
+    fun isNeedPinEntry(cvmResult: String, entryMode: EntryMode?,serviceCode:String): String
 
-    fun generatePinBlock(panNumber: String,pinBlockType: PinBlockType): String
+    fun generatePinBlock(panNumber: String,pin : String,pinBlockType: PinBlockType): String
 
     fun isRequiredSignatureOnReceipt(cvmResult: String,entryMode: EntryMode?): Boolean
 
